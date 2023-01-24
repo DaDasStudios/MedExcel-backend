@@ -4,7 +4,7 @@ import fs from 'fs'
 import path from 'path'
 
 // * Routers
-import { authRouter, pingRouter } from "./routes"
+import { authRouter, pingRouter, usersRouter } from "./routes"
 
 // * Middlewares
 import morgan from "morgan"
@@ -53,6 +53,7 @@ export class App {
         // ? Normal routes
         this.app.use('/', pingRouter)
         this.app.use('/auth', authRouter)
+        this.app.use('/users', usersRouter)
 
         // todo: 404 Error Handler
         this.app.use((req, res, next) => {

@@ -2,7 +2,7 @@ import { sign, verify } from 'jsonwebtoken'
 import { TOKEN_SECRET } from '../config'
 
 export const signToken = (payload: string) => {
-    return sign({ id: payload }, TOKEN_SECRET, { expiresIn: 60 * 60 * 24 })
+    return sign({ id: payload }, TOKEN_SECRET, { expiresIn: 60 * 60 * 24, algorithm: "HS256" })
 }
 
 export const verifyToken = (token: string) => {

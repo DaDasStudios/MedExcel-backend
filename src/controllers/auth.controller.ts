@@ -33,5 +33,5 @@ export const signUp = async (req: Request, res: Response) => {
         role: USER_ROLE?._id
     }).save();
 
-    return res.status(200).json({ message: "User created", user: savedUser })
+    return res.status(200).json({ message: "User created", token: signToken(savedUser._id.toString()) })
 }
