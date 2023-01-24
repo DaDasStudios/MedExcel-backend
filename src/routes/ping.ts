@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { ping } from '../controllers/ping.controller';
+import { ping } from '../controllers';
 
-export const routerPing = Router()
+export const pingRouter = Router()
 
-routerPing.get('/ping', ping)
+pingRouter.get('/ping', ping)
