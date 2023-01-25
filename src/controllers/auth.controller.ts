@@ -10,36 +10,45 @@ import { IUser } from '../interfaces'
 
 
 export const signIn = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(403).json({ message: "Uncompleted information" })
-    const foundUser = await User.findOne({ email })
-    if (!foundUser) return res.status(403).json({ message: "Invalid credentials" })
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) return res.status(403).json({ message: "Uncompleted information" })
+        const foundUser = await User.findOne({ email })
 
-    if (!await comparePassword(password, foundUser?.password)) return res.status(403).json({ message: "Invalid credentials" })
+        if (!foundUser) return res.status(403).json({ message: "Invalid credentials" })
 
-    return res.status(200).json({ token: signToken({ id: foundUser._id.toString() }) })
+        if (!await comparePassword(password, foundUser?.password)) return res.status(403).json({ message: "Invalid credentials" })
+
+        const token = signToken({ id: foundUser._id.toString() })
+        await User.findByIdAndUpdate(foundUser._id, { token })
+
+        return res.status(200).json({ token })
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" })
+    }
 }
 
 export const signUp = async (req: Request, res: Response) => {
-    const { username, email, password } = req.body as { username: string, email: string, password: string }
-    if (!username || !email || !password) return res.status(403).json({ message: "Uncompleted information" })
+    try {
+        const { username, email, password } = req.body as { username: string, email: string, password: string }
+        if (!username || !email || !password) return res.status(403).json({ message: "Uncompleted information" })
 
-    if (username.length < 5 || !emailRegExp.test(email) || password.length < 8) {
-        return res.status(403).json({ message: "Invalid credentials" })
-    }
+        if (username.length < 5 || !emailRegExp.test(email) || password.length < 8) {
+            return res.status(403).json({ message: "Invalid credentials" })
+        }
 
-    const USER_ROLE = await Role.findOne({ name: "User" })
-    const newUser = new User({
-        username,
-        email,
-        password: await encryptPassword(password),
-        role: USER_ROLE?._id
-    })
-    const token = signToken({ user: newUser })
-    await mailTransporter.sendMail({
-        subject: `⚕️ Hi ${username}, from MedExcel! - Please confirm your email address <${email}>`,
-        to: email,
-        html: emailHTMLBody(`
+        const USER_ROLE = await Role.findOne({ name: "User" })
+        const newUser = new User({
+            username,
+            email,
+            password: await encryptPassword(password),
+            role: USER_ROLE?._id
+        })
+        const token = signToken({ user: newUser })
+        await mailTransporter.sendMail({
+            subject: `⚕️ Hi ${username}, from MedExcel! - Please confirm your email address <${email}>`,
+            to: email,
+            html: emailHTMLBody(`
 		<div>
 			<h3>
 				To access to our services we need to know that you actually are
@@ -54,8 +63,11 @@ export const signUp = async (req: Request, res: Response) => {
 		</div>
 `)
 
-    })
-    return res.status(100).json({ message: "Waiting for email confirmation" })
+        })
+        return res.status(200).json({ message: "Waiting for email confirmation" })
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" })
+    }
 }
 
 export const confirmEmail = async (req: Request, res: Response) => {
@@ -63,13 +75,16 @@ export const confirmEmail = async (req: Request, res: Response) => {
         const authorizationToken = req.params.authorization as string
         const { user } = verifyToken(authorizationToken) as { user: IUser }
         const { email, password, role, username } = user
-        const savedUser = await new User({ username, email, password, role }).save()
+        const newUser = new User({ username, email, password, role })
+        const token = signToken({ id: newUser._id })
+        newUser.token = token
+        const savedUser = await newUser.save()
 
         return res.status(200).json(
             {
                 message: "User created",
                 user: { username: savedUser.username, email: savedUser.email },
-                token: signToken({ id: savedUser._id })
+                token
             })
     } catch (error) {
         return res.status(403).json({ message: "Invalid credentials" })
