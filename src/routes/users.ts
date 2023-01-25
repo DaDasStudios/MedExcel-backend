@@ -8,6 +8,7 @@ const passwordRouter = Router()
 
 const userRouter = Router()
     .get("/:id", [isAuthenticated(), isAuthorized(["Admin"])], user)
+    .get("/owner/:id", [isAuthenticated(), isAuthorized(["User"], true)], user)
     .put("/:id", [isAuthenticated(), isAuthorized(["Admin"])], updateUser)
     .delete("/:id", [isAuthenticated(), isAuthorized(["Admin"])], deleteUser)
 

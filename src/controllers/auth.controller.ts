@@ -22,7 +22,7 @@ export const signIn = async (req: Request, res: Response) => {
         const token = signToken({ id: foundUser._id.toString() })
         await User.findByIdAndUpdate(foundUser._id, { token })
 
-        return res.status(200).json({ token })
+        return res.status(200).json({ token, id: foundUser._id })
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" })
     }
@@ -83,7 +83,7 @@ export const confirmEmail = async (req: Request, res: Response) => {
         return res.status(200).json(
             {
                 message: "User created",
-                user: { username: savedUser.username, email: savedUser.email },
+                user: { username: savedUser.username, email: savedUser.email, id: savedUser._id },
                 token
             })
     } catch (error) {
