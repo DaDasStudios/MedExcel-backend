@@ -5,6 +5,6 @@ export interface IUser {
     password: string
     createdAt: string
     updatedAt: string
-    roles: Array<string>
+    role: string
     _id: string
 }

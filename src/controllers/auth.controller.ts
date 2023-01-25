@@ -3,7 +3,9 @@ import { emailRegExp } from '../util/regExp';
 import User from '../models/User';
 import Role from '../models/Role';
 import { comparePassword, encryptPassword } from '../util/password'
-import { signToken } from '../util/token';
+import { signToken, verifyToken } from '../util/token';
+import { mailTransporter } from '../lib/nodemailer';
+import { IUser } from '../interfaces'
 
 
 export const signIn = async (req: Request, res: Response) => {
@@ -14,7 +16,7 @@ export const signIn = async (req: Request, res: Response) => {
 
     if (!await comparePassword(password, foundUser?.password)) return res.status(403).json({ message: "Invalid credentials" })
 
-    return res.status(200).json({ token: signToken(foundUser._id.toString()) })
+    return res.status(200).json({ token: signToken({ id: foundUser._id.toString() }) })
 }
 
 export const signUp = async (req: Request, res: Response) => {
@@ -26,12 +28,61 @@ export const signUp = async (req: Request, res: Response) => {
     }
 
     const USER_ROLE = await Role.findOne({ name: "User" })
-    const savedUser = await new User({
+    const newUser = new User({
         username,
         email,
         password: await encryptPassword(password),
         role: USER_ROLE?._id
-    }).save();
+    })
+    const token = signToken({ user: newUser })
+    await mailTransporter.sendMail({
+        subject: `⚕️ Hi ${username}, from MedExcel! - Please confirm your email address <${email}>`,
+        to: email,
+        html: `
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>MedExcel</title>
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+	</head>
+	<body>
+		<div>
+			<h3>
+				To access to our services we need to know that you actually are
+				using a valid email address
+			</h3>
+			<p>
+				Go to this link to get started with our services.
+				<a href="http://localhost:5000/auth/signup/${token}">
+					Get authenticated
+				</a>
+			</p>
+		</div>
+	</body>
+</html>
+`
 
-    return res.status(200).json({ message: "User created", token: signToken(savedUser._id.toString()) })
+    })
+    return res.status(200).json({ message: "Waiting for email confirmation" })
+}
+
+export const confirmEmail = async (req: Request, res: Response) => {
+    try {
+        const authorizationToken = req.params.authorization as string
+        const { user } = verifyToken(authorizationToken) as { user: IUser }
+        const { email, password, role, username } = user
+        const savedUser = await new User({ username, email, password, role }).save()
+
+        return res.status(200).json(
+            {
+                message: "User created",
+                user: { username: savedUser.username, email: savedUser.email },
+                token: signToken({ id: savedUser._id })
+            })
+    } catch (error) {
+        return res.status(403).json({ message: "Invalid credentials"})
+    }
 }

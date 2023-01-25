@@ -30,6 +30,7 @@ export class App {
         })
         this.middlewares()
         this.routes()
+        this.static()
     }
 
     private settings({
@@ -57,10 +58,15 @@ export class App {
 
         // todo: 404 Error Handler
         this.app.use((req, res, next) => {
-            next(createError(404))
+            //next(createError(404))
+            next()
         })
         // todo: General Error Handler
         this.app.use(errorHandler)
+    }
+
+    private static() {
+        this.app.use(express.static(path.join(__dirname, "public")))
     }
 
     public run() {
