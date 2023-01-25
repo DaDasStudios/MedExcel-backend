@@ -4,6 +4,7 @@ import User from '../models/User';
 import Role from '../models/Role';
 import { comparePassword, encryptPassword } from '../util/password'
 import { signToken, verifyToken } from '../util/token';
+import { emailHTMLBody } from '../util/email'
 import { mailTransporter } from '../lib/nodemailer';
 import { IUser } from '../interfaces'
 
@@ -38,17 +39,7 @@ export const signUp = async (req: Request, res: Response) => {
     await mailTransporter.sendMail({
         subject: `⚕️ Hi ${username}, from MedExcel! - Please confirm your email address <${email}>`,
         to: email,
-        html: `
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>MedExcel</title>
-        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-	</head>
-	<body>
+        html: emailHTMLBody(`
 		<div>
 			<h3>
 				To access to our services we need to know that you actually are
@@ -61,12 +52,10 @@ export const signUp = async (req: Request, res: Response) => {
 				</a>
 			</p>
 		</div>
-	</body>
-</html>
-`
+`)
 
     })
-    return res.status(200).json({ message: "Waiting for email confirmation" })
+    return res.status(100).json({ message: "Waiting for email confirmation" })
 }
 
 export const confirmEmail = async (req: Request, res: Response) => {
@@ -83,6 +72,6 @@ export const confirmEmail = async (req: Request, res: Response) => {
                 token: signToken({ id: savedUser._id })
             })
     } catch (error) {
-        return res.status(403).json({ message: "Invalid credentials"})
+        return res.status(403).json({ message: "Invalid credentials" })
     }
 }

@@ -1,6 +1,8 @@
 import { Router } from "express";
-import { users } from "../controllers";
+import { updatePassword, users, confirmUpdatePassword } from "../controllers";
 import { isAuthenticated, isAuthorized } from '../middlewares/auth'
 
 export const usersRouter = Router()
-    .get("/", [isAuthenticated(), isAuthorized("Admin")], users)
+    .get("/", [isAuthenticated(), isAuthorized(["Admin"])], users)
+    .put("/password", [isAuthenticated(), isAuthorized(["User", "Admin"])], confirmUpdatePassword)
+    .put("/password/:permissionToken", [isAuthenticated(), isAuthorized(["User", "Admin"])] , updatePassword)

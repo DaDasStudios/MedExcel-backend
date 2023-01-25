@@ -18,6 +18,10 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Role",
         required: false
+    },
+    token: {
+        type: String,
+        required: false
     }
 }, {
     timestamps: true
