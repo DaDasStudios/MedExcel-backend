@@ -8,6 +8,10 @@ const siteSchema = new Schema({
     image: {
         url: String,
         public_id: String
+    },
+    discounts: {
+        name: String,
+        amount: Number
     }
 })
 

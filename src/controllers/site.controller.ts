@@ -1,13 +1,13 @@
 import { Response, Request } from 'express';
 import { RequestUser } from '../@types/RequestUser'
 import fs from 'fs-extra'
-import { uploadImage } from '../lib/cloudinary'
+import { uploadCloudFile } from '../lib/cloudinary'
 import Site from '../models/Site';
 
 export const updateImage = async (req: RequestUser, res: Response) => {
     try {
         const { image } = req.files
-        const imgRes = await uploadImage(image.tempFilePath, { public_id: "medexcel-logo" })
+        const imgRes = await uploadCloudFile(image.tempFilePath, { public_id: "medexcel-logo" })
         await Site.findOneAndUpdate({
             name: "Medexcel",
             image: {

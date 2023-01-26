@@ -19,11 +19,11 @@ export const configureCloudinary = () => {
     }
 }
 
-export const deleteImage = (id: string) => {
+export const deleteCloudFile = (id: string) => {
     return cloudinary.uploader.destroy(id)
 }
 
-export const uploadImage = async (fileName: string, options?: UploadApiOptions) => {
+export const uploadCloudFile = async (fileName: string, options?: UploadApiOptions) => {
     const response = await cloudinary.uploader.upload(fileName, {
         use_filename: true,
         overwrite: true,
