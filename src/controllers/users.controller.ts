@@ -3,8 +3,8 @@ import { RequestUser } from '../@types/RequestUser';
 import { mailTransporter } from '../lib/nodemailer';
 import User from '../models/User';
 import { emailHTMLBody } from '../util/email';
-import { encryptPassword } from '../util/password';
-import { signToken, verifyToken } from '../util/token';
+import { encryptPassword } from '../lib/bcryptjs';
+import { signToken, verifyToken } from '../lib/jsonwebtoken';
 
 export const users = async (req: Request, res: Response) => {
     try {

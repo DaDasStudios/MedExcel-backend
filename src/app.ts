@@ -4,13 +4,14 @@ import fs from 'fs'
 import path from 'path'
 
 // * Routers
-import { authRouter, pingRouter, usersRouter } from "./routes"
+import { authRouter, pingRouter, siteRouter, usersRouter } from "./routes"
 
 // * Middlewares
 import morgan from "morgan"
 import cookieParser from "cookie-parser"
 import { errorHandler } from './middlewares'
 import cors from 'cors'
+import fileUpload from 'express-fileupload'
 
 // * Util
 import createError from 'http-errors'
@@ -43,6 +44,10 @@ export class App {
         this.app.use(cors())
         this.app.use(express.json())
         this.app.use(express.urlencoded({ extended: false }))
+        this.app.use(fileUpload({
+            useTempFiles: true,
+            tempFileDir: path.join(__dirname, '../temp')
+        }))
         this.app.use(morgan(NODE_ENV === "development" ? "dev" : "normal", {
             stream: this.accessLogStream
         }))
@@ -55,6 +60,7 @@ export class App {
         this.app.use('/', pingRouter)
         this.app.use('/auth', authRouter)
         this.app.use('/users', usersRouter)
+        this.app.use('/site', siteRouter)
 
         // todo: 404 Error Handler
         this.app.use((req, res, next) => {

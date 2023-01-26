@@ -2,8 +2,8 @@ import { Request, Response } from 'express';
 import { emailRegExp } from '../util/regExp';
 import User from '../models/User';
 import Role from '../models/Role';
-import { comparePassword, encryptPassword } from '../util/password'
-import { signToken, verifyToken } from '../util/token';
+import { comparePassword, encryptPassword } from '../lib/bcryptjs'
+import { signToken, verifyToken } from '../lib/jsonwebtoken';
 import { emailHTMLBody } from '../util/email'
 import { mailTransporter } from '../lib/nodemailer';
 import { IUser } from '../interfaces'
