@@ -75,7 +75,16 @@ export const confirmEmail = async (req: Request, res: Response) => {
         const authorizationToken = req.params.authorization as string
         const { user } = verifyToken(authorizationToken) as { user: IUser }
         const { email, password, role, username } = user
-        const newUser = new User({ username, email, password, role })
+        const newUser = new User({
+            username, 
+            email, 
+            password, 
+            role, 
+            subscription: {
+                hasSubscription: false,
+                points: 0,
+            }
+        })
         const token = signToken({ id: newUser._id })
         newUser.token = token
         const savedUser = await newUser.save()

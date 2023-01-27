@@ -47,6 +47,9 @@ export const updateSubscriptionPlan = async (req: RequestUser, res: Response) =>
         const siteInfo = await Site.findOne({ name: "Medexcel" })
         const subscriptionPlans = siteInfo.subscriptionPlans
         const idx = subscriptionPlans.findIndex(s => s._id == id)
+
+        if (idx < 0) return res.status(404).json({ message: "Subscription not found" })
+
         subscriptionPlans[idx] = {
             _id: subscriptionPlans[idx]._id, 
             createdAt: subscriptionPlans[idx].createdAt,

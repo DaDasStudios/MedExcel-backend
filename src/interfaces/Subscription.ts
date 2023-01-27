@@ -9,5 +9,6 @@ export interface ISubscription {
 export interface IDateSubscription extends ISubscription {
     createdAt: Date
     updatedAt: Date
+    _id: string
 }
 

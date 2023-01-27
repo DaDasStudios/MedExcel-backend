@@ -1,6 +1,8 @@
 import { Router } from 'express';
-import { createOrder } from '../controllers';
+import { captureOrder, createOrder, cancelOrder } from '../controllers';
 import { isAuthenticated, isAuthorized } from '../middlewares/auth';
 
 export const paymentRouter = Router()
-    .post('/create-order', [isAuthenticated(), isAuthorized(["User"])], createOrder)
+    .post('/create-order/:id', [isAuthenticated(), isAuthorized(["User"])], createOrder)
+    .get('/capture', captureOrder)
+    .get('/cancel', cancelOrder)

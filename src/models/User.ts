@@ -28,7 +28,14 @@ const userSchema = new Schema({
         points: Number,
         purchaseDate: Date,
         required: false,
-
+    },
+    payment_id: {
+        type: String,
+        required: false
+    },
+    payment_token: {
+        type: String,
+        required: false
     }
 }, {
     timestamps: true
