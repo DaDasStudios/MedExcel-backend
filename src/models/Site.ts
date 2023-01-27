@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types, mongo } from 'mongoose';
 
 const siteSchema = new Schema({
     name: {
@@ -9,10 +9,15 @@ const siteSchema = new Schema({
         url: String,
         public_id: String
     },
-    discounts: {
+    subscriptionPlans: [{
         name: String,
-        amount: Number
-    }
+        description: String,
+        price: Number,
+        points: Number,
+        createdAt: Date,
+        updatedAt: Date,
+        _id: String
+    }]
 })
 
 export default model("Site", siteSchema)

@@ -22,6 +22,13 @@ const userSchema = new Schema({
     token: {
         type: String,
         required: false
+    },
+    subscription: {
+        hasSubscription: Boolean,
+        points: Number,
+        purchaseDate: Date,
+        required: false,
+
     }
 }, {
     timestamps: true

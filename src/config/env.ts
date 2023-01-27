@@ -13,3 +13,7 @@ export const CLOUDINARY_URL = process.env.CLOUDINARY_URL || ''
 export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || ''
 export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || ''
 export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || ''
+export const PAYPAL_CLIENT = process.env.PAYPAL_CLIENT || ''
+export const PAYPAL_SECRET = process.env.PAYPAL_SECRET || ''
+export const PAYPAL_URL = process.env.PAYPAL_URL || "https://api-m.sandbox.paypal.com"
+export const HOST = process.env.HOST || "http://localhost:5000"
