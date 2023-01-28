@@ -39,10 +39,10 @@ export const deleteSubscriptionPlan = async (req: RequestUser, res: Response) =>
 
 export const updateSubscriptionPlan = async (req: RequestUser, res: Response) => {
     try {
-        const { id, name, description, points, price } = req.body;
+        const { id, name, description, days, price } = req.body;
         if (!id) return res.status(400).json({ message: "Uncompleted information" })
 
-        if (!name || !description || !points || !price) return res.status(400).json({ message: "Uncompleted information" })
+        if (!name || !description || !days || !price) return res.status(400).json({ message: "Uncompleted information" })
 
         const siteInfo = await Site.findOne({ name: "Medexcel" })
         const subscriptionPlans = siteInfo.subscriptionPlans
@@ -56,7 +56,7 @@ export const updateSubscriptionPlan = async (req: RequestUser, res: Response) =>
             updatedAt: new Date(),
             name, 
             description, 
-            points, 
+            days, 
             price,
         }
 
@@ -74,8 +74,8 @@ export const updateSubscriptionPlan = async (req: RequestUser, res: Response) =>
 
 export const createSubcriptionPlan = async (req: RequestUser, res: Response) => {
     try {
-        const { name, description, points, price } = req.body as ISubscription
-        if (!name || !description || !points || !price) return res.status(400).json({ message: "Uncompleted information" })
+        const { name, description, days, price } = req.body as ISubscription
+        if (!name || !description || !days || !price) return res.status(400).json({ message: "Uncompleted information" })
 
         const siteInfo = await Site.findOne({
             name: "Medexcel",
@@ -85,7 +85,7 @@ export const createSubcriptionPlan = async (req: RequestUser, res: Response) => 
             _id: new Types.ObjectId().toString(),
             name, 
             description, 
-            points, price, 
+            days, price, 
             createdAt: new Date(), 
             updatedAt: new Date()
         })

@@ -25,10 +25,14 @@ const userSchema = new Schema({
     },
     subscription: {
         hasSubscription: Boolean,
-        points: Number,
+        access: Date,
         purchaseDate: Date,
         required: false,
     },
+    correctAnswers: [{
+        type: String,
+        required: false
+    }],
     payment_id: {
         type: String,
         required: false

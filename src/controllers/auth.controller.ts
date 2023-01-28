@@ -75,6 +75,11 @@ export const confirmEmail = async (req: Request, res: Response) => {
         const authorizationToken = req.params.authorization as string
         const { user } = verifyToken(authorizationToken) as { user: IUser }
         const { email, password, role, username } = user
+
+        // * Add two week of trail access
+        const dateLimit = new Date()
+        dateLimit.setDate(dateLimit.getDate() + 14)
+
         const newUser = new User({
             username, 
             email, 
@@ -82,7 +87,7 @@ export const confirmEmail = async (req: Request, res: Response) => {
             role, 
             subscription: {
                 hasSubscription: false,
-                points: 0,
+                access: dateLimit,
             }
         })
         const token = signToken({ id: newUser._id })

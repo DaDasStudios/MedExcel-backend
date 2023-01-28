@@ -13,7 +13,7 @@ const siteSchema = new Schema({
         name: String,
         description: String,
         price: Number,
-        points: Number,
+        days: Number,
         createdAt: Date,
         updatedAt: Date,
         _id: String

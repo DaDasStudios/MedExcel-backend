@@ -47,9 +47,11 @@ export const captureOrder = async (req: Request, res: Response) => {
 
         // * Decode user token to access to the actual subscription plan
         const { subscription } = verifyToken(user.payment_token) as { subscription: IDateSubscription }
+        const limitDay = new Date()
+        limitDay.setDate(limitDay.getDate() + subscription.days)
         user.subscription = {
             hasSubscription: true,
-            points: subscription.points,
+            access: limitDay,
             purchaseDate: new Date()
         }
         const savedUser = await user.save()
@@ -62,7 +64,7 @@ export const captureOrder = async (req: Request, res: Response) => {
                 email: savedUser.email, 
                 subscription: {
                     hasSubscription: savedUser.subscription.hasSubscription,
-                    points: savedUser.subscription.points,
+                    access: savedUser.subscription.access,
                     purchaseDate: savedUser.subscription.purchaseDate
                 } 
             }
