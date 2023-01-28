@@ -23,6 +23,7 @@ export interface SBAQuestion {
     options: string[];
     question: string
     answer: string | number
+    explanation: string
 }
 
 export interface IQuestion<T> {
@@ -31,5 +32,4 @@ export interface IQuestion<T> {
     content: T
     category: string
     subcategory?: string
-    explanation: string
 }

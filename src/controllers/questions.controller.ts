@@ -1,25 +1,80 @@
-import { request, Response } from "express";
+import { Response } from "express";
 import { RequestUser } from "../@types/RequestUser";
-import { uploadCloudFile } from "../lib/cloudinary";
 import Question from "../models/Question";
-import fs from 'fs-extra'
-import { IQuestion, SBAQuestion } from "../interfaces";
+import { CBQQuestion, ECQQuestion, IQuestion, QuestionType, SBAQuestion } from "../interfaces";
+
+export const getFilteredQuestions = async (req: RequestUser, res: Response) => {
+    try {
+        const { category, id, type } = req.body as { category: string[], id: string, type: QuestionType }
+        if (id) {
+            return res.status(200).json({ question: await Question.findById(id) })
+        } else if (category && type) {
+            return res.status(200).json({
+                questions: await Question.find(
+                    {
+                        category: { $in: category },
+                        type: { $in: type }
+                    }
+                )
+            })
+        } else if (category) {
+            return res.status(200).json({ questions: await Question.find({ category: { $in: category } }) })
+        } else if (type) {
+            return res.status(200).json({ questions: await Question.find({ type: { $in: type } }) })
+        }
+
+        return res.status(400).json({ message: "No filter specified" })
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+export const getQuestions = async (req: RequestUser, res: Response) => {
+    try {
+        const questions = await Question.find()
+        return res.status(200).json({ questions })
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+export const deleteQuestion = async (req: RequestUser, res: Response) => {
+    try {
+        const deletedQuestion = await Question.findByIdAndDelete(req.params.id)
+        if (!deletedQuestion) return res.status(404).json({ message: 'Question not found' })
+
+        return res.status(200).json({ message: 'Question deleted', question: deletedQuestion })
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+export const updateQuestion = async (req: RequestUser, res: Response) => {
+    try {
+        const { content, scenario, category, subcategory } = req.body;
+        const updatedQuestion = await Question.findByIdAndUpdate(req.params.id, { content, scenario, category, subcategory }, { new: true })
+        return res.status(200).json({ message: "Question updated", question: updatedQuestion })
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
 
 export const postQuestion = async (req: RequestUser, res: Response) => {
     try {
-        const { type, content, explanation, scenario, category, subcategory } = req.body as IQuestion<SBAQuestion>
-        if (!type || !content || !category || !explanation || !scenario) return res.status(400).json({ mesage: "Uncompleted information" })
+        const { type, content, scenario, category, subcategory } = req.body as IQuestion<SBAQuestion | ECQQuestion | CBQQuestion>
+
+        if (!type || !content || !category || !scenario) return res.status(400).json({ mesage: "Uncompleted information" })
+
+        if (!["SBA", "ECQ", "CBQ"].includes(type)) return res.status(400).json({ message: "Invalid type of question" })
 
         const newQuestion = new Question({
-            type, content, explanation, scenario, category, subcategory
+            type, content, scenario, category, subcategory
         })
 
         const savedQuestion = await newQuestion.save()
-        console.log(savedQuestion)
 
-        res.status(200).json({ message: "New question saved", question: savedQuestion })
+        return res.status(200).json({ message: "New question saved", question: savedQuestion })
     } catch (error) {
-        console.log(error)
-        res.status(500).json({ message: "Internal server error" })
+        return res.status(500).json({ message: "Internal server error" })
     }
 }

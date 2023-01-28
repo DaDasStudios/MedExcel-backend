@@ -1,10 +1,25 @@
 import { Router } from 'express';
-import { postQuestion } from '../controllers/questions.controller';
+import { deleteQuestion, getFilteredQuestions, getQuestions, postQuestion, updateQuestion } from '../controllers/questions.controller';
 import { isAuthenticated, isAuthorized } from '../middlewares/auth';
-import { checkSize, hasQuestionFiles } from '../middlewares/files';
 
 export const questionRouter = Router()
+    .get('/', [
+        isAuthenticated(),
+        isAuthorized(["Admin"]),
+    ], getQuestions)
+    .post('/filter', [
+        isAuthenticated(),
+        isAuthorized(["Admin"]),
+    ], getFilteredQuestions)
     .post('/', [
         isAuthenticated(),
         isAuthorized(["Admin"]),
     ], postQuestion)
+    .put('/:id', [
+        isAuthenticated(),
+        isAuthorized(["Admin"]),
+    ], updateQuestion)
+    .delete('/:id', [
+        isAuthenticated(),
+        isAuthorized(["Admin"]),
+    ], deleteQuestion)
