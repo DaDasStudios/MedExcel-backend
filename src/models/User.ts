@@ -23,16 +23,25 @@ const userSchema = new Schema({
         type: String,
         required: false
     },
+    exam: {
+        questions: [String],
+        current: Number,
+        correctAnswers: [String],
+        startedAt: Date,
+        score: Number,
+        scoresHistory: [{
+            startedAt: Date,
+            finishedAt: Date,
+            questions: [String],
+            score: Number
+        }],
+    },
     subscription: {
         hasSubscription: Boolean,
         access: Date,
         purchaseDate: Date,
         required: false,
     },
-    correctAnswers: [{
-        type: String,
-        required: false
-    }],
     payment_id: {
         type: String,
         required: false

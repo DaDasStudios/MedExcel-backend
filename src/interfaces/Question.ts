@@ -15,6 +15,7 @@ export interface ECQQuestion {
     questions: Array<{
         question: string
         answer: string | number
+        explanation: string
     }>
 
 }
@@ -22,7 +23,7 @@ export interface ECQQuestion {
 export interface SBAQuestion {
     options: string[];
     question: string
-    answer: string | number
+    answer: number
     explanation: string
 }
 

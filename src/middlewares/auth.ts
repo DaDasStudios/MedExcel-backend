@@ -20,6 +20,26 @@ export const isAuthorized = (roles: string[], checkParamId: boolean = false) => 
                         email: foundUser.email,
                         password: foundUser.password,
                         role: foundUser.role?.toString() || '',
+                        subscription: {
+                            access: foundUser.subscription.access,
+                            hasSubscription: foundUser.subscription.hasSubscription,
+                            purchaseDate: foundUser.subscription.purchaseDate,
+                        },
+                        exam: {
+                            correctAnswers: foundUser.exam.correctAnswers,
+                            current: foundUser.exam.current,
+                            questions: foundUser.exam.questions,
+                            score: foundUser.exam.score,
+                            startedAt: foundUser.exam.startedAt,
+                            scoresHistory: foundUser.exam.scoresHistory.map(function (sh) {
+                                return {
+                                    finishedAt: sh.finishedAt,
+                                    questions: sh.questions,
+                                    score: sh.score,
+                                    startedAt: sh.startedAt
+                                }
+                            }),
+                        },
                         createdAt: foundUser.createdAt,
                         updatedAt: foundUser.updatedAt
                     }
