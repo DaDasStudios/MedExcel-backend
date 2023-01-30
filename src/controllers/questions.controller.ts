@@ -18,7 +18,7 @@ export const getFilteredQuestions = async (req: RequestUser, res: Response) => {
                 )
             })
         } else if (category) {
-            return res.status(200).json({ questions: await Question.find({ category: { $in: category } }) })
+            return res.status(200).json({ questions: category.length === 0 ? await Question.find() : await Question.find({ category: { $in: category } }) })
         } else if (type) {
             return res.status(200).json({ questions: await Question.find({ type: { $in: type } }) })
         }
@@ -31,8 +31,16 @@ export const getFilteredQuestions = async (req: RequestUser, res: Response) => {
 
 export const getQuestions = async (req: RequestUser, res: Response) => {
     try {
-        const questions = await Question.find()
-        return res.status(200).json({ questions })
+        const questions = await Question.find().lean()
+        return res.status(200).json({
+            questions: questions.map(function (q) {
+                return {
+                    ...q,
+                    content: null,
+                    __v: null
+                }
+            })
+        })
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" })
     }

@@ -17,3 +17,4 @@ export const PAYPAL_CLIENT = process.env.PAYPAL_CLIENT || ''
 export const PAYPAL_SECRET = process.env.PAYPAL_SECRET || ''
 export const PAYPAL_URL = process.env.PAYPAL_URL || "https://api-m.sandbox.paypal.com"
 export const HOST = process.env.HOST || "http://localhost:5000"
+export const CLIENT_HOST = process.env.CLIENT_HOST || ""

@@ -7,6 +7,7 @@ import { signToken, verifyToken } from '../lib/jsonwebtoken';
 import { emailHTMLBody } from '../util/email'
 import { mailTransporter } from '../lib/nodemailer';
 import { IUser } from '../interfaces'
+import { CLIENT_HOST } from '../config';
 
 
 export const signIn = async (req: Request, res: Response) => {
@@ -88,18 +89,16 @@ export const confirmEmail = async (req: Request, res: Response) => {
             subscription: {
                 hasSubscription: false,
                 access: dateLimit,
+            },
+            exam: {
+                startedAt: null
             }
         })
         const token = signToken({ id: newUser._id })
         newUser.token = token
         const savedUser = await newUser.save()
 
-        return res.status(200).json(
-            {
-                message: "User created",
-                user: { username: savedUser.username, email: savedUser.email, id: savedUser._id },
-                token
-            })
+        return res.redirect(CLIENT_HOST)
     } catch (error) {
         return res.status(403).json({ message: "Invalid credentials" })
     }

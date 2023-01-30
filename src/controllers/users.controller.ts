@@ -5,6 +5,7 @@ import User from '../models/User';
 import { emailHTMLBody } from '../util/email';
 import { encryptPassword } from '../lib/bcryptjs';
 import { signToken, verifyToken } from '../lib/jsonwebtoken';
+import { CLIENT_HOST } from '../config';
 
 export const users = async (req: Request, res: Response) => {
     try {
@@ -65,7 +66,7 @@ export const recoverPassword = async (req: Request, res: Response) => {
 			</h3>
 			<p>
 				Go to this link to change your password
-				<a href="http://localhost:5000/users/password/${token}">
+				<a href="${CLIENT_HOST}/users/password/${token}">
 					Update password
 				</a>
 			</p>

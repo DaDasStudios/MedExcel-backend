@@ -5,7 +5,7 @@ import { isAuthenticated, isAuthorized } from '../middlewares/auth';
 export const questionRouter = Router()
     .get('/', [
         isAuthenticated(),
-        isAuthorized(["Admin"]),
+        isAuthorized(["User", "Admin"]),
     ], getQuestions)
     .post('/filter', [
         isAuthenticated(),

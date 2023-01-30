@@ -121,7 +121,7 @@ export const setUserExam = async (req: RequestUser, res: Response) => {
         user.exam.startedAt = new Date()
         await user.save()
 
-        return res.status(200).json({ questions })
+        return res.status(200).json({ message: "Exam started", questions: user.exam.questions })
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" })
     }
