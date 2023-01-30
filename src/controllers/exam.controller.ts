@@ -69,14 +69,50 @@ export const getUserExamInfo = async (req: RequestUser, res: Response) => {
     }
 }
 
+export const cancelUserExam = async (req: RequestUser, res: Response) => {
+    try {
+        const user = await User.findById(req.user._id)
+        user.exam.current = 0
+        user.exam.questions = []
+        user.exam.score = 0
+        user.exam.startedAt = null
+        await user.save()
+        return res.status(204).json({ message: "Exam cancelled" })
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
+
 export const setUserExam = async (req: RequestUser, res: Response) => {
     try {
-        const { categories, filter } = req.body as { categories: string[], filter: string[] }
+        const { categories, filter } = req.body as { categories: string[], filter: "NEW" | "ALL" | "INCORRECT" }
         if (!categories) return res.status(400).json({ message: "Categories must be provided" })
 
         if (req.user.exam.startedAt !== null) return res.status(401).json({ message: "You cannot start an exam without finishing the current one" })
 
-        const questions = await Question.find({ category: { $in: categories } })
+        let questions: any
+        switch (filter) {
+            case "ALL":
+                questions = await Question.find({ category: { $in: categories } }).lean()
+                break;
+
+            case "NEW":
+                const now = Date.now()
+                questions = (await Question.find({ category: { $in: categories } }).lean())
+                    .filter(q => now - new Date(q.updatedAt).getTime() < 2.628e+9)
+                break;
+
+            case "INCORRECT":
+                questions = await Question.find({ category: { $in: categories }, _id: { $nin: req.user.exam.correctAnswers } }).lean()
+                break;
+
+            default:
+                // * We assume that the filter is ALL
+                questions = await Question.find({ category: { $in: categories } }).lean()
+                break;
+        }
+
+        if (questions.length === 0) return res.status(400).json({ message: "No question found with the specified filters" })
 
         const user = await User.findById(req.user._id)
         user.exam.questions = questions.map(q => q._id.toString())
@@ -116,7 +152,7 @@ export const checkQuestion = async (req: RequestUser, res: Response) => {
                 }
                 user.exam.current++
                 const savedUser = await user.save()
-                
+
                 return res.status(200).json({ status: isCorrect ? "CORRECT" : "INCORRECT", score: savedUser.exam.score, explanation: foundQuestion.content.explanation })
             }
 

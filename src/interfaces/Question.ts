@@ -1,4 +1,5 @@
 import {UploadedFile} from "express-fileupload"
+import { Types } from "mongoose";
 
 export type QuestionType = "SBA" | "ECQ" | "CBQ" 
 
@@ -28,7 +29,8 @@ export interface SBAQuestion {
 }
 
 export interface IQuestion<T> {
-    type: QuestionType
+    _id: string
+    type: string
     scenario: string
     content: T
     category: string
