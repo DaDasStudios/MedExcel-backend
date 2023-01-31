@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Request, Response } from "express";
 import { RequestUser } from "../@types/RequestUser";
-import { HOST, PAYPAL_URL } from "../config";
+import { PAYPAL_URL } from "../config";
 import { IDateSubscription } from "../interfaces";
 import { signToken, verifyToken } from "../lib/jsonwebtoken";
 import { authPaypal } from '../lib/paypal'
@@ -104,8 +104,8 @@ export const createOrder = async (req: RequestUser, res: Response) => {
                 }
             ],
             application_context: {
-                cancel_url: `${HOST}/payments/cancel`,
-                return_url: `${HOST}/payments/capture`,
+                cancel_url: `https://medexcel.onrender.com/payments/cancel`,
+                return_url: `https://medexcel.onrender.com/payments/capture`,
             }
         }, {
             headers: {
