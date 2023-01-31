@@ -7,8 +7,7 @@ import { signToken, verifyToken } from '../lib/jsonwebtoken';
 import { emailHTMLBody } from '../util/email'
 import { mailTransporter } from '../lib/nodemailer';
 import { IUser } from '../interfaces'
-import { CLIENT_HOST, HOST } from '../config';
-
+import { CLIENT_HOST } from '../config';
 
 export const signIn = async (req: Request, res: Response) => {
     try {
@@ -57,7 +56,7 @@ export const signUp = async (req: Request, res: Response) => {
 			</h3>
 			<p>
 				Go to this link to get started with our services.
-				<a href="${HOST}/auth/signup/${token}">
+				<a href="https://medexcel.onrender.com/auth/signup/${token}">
 					Get authenticated
 				</a>
 			</p>
