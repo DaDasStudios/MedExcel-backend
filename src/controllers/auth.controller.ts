@@ -7,7 +7,7 @@ import { signToken, verifyToken } from '../lib/jsonwebtoken';
 import { emailHTMLBody } from '../util/email'
 import { mailTransporter } from '../lib/nodemailer';
 import { IUser } from '../interfaces'
-import { CLIENT_HOST } from '../config';
+import { CLIENT_HOST, HOST } from '../config';
 
 
 export const signIn = async (req: Request, res: Response) => {
@@ -57,7 +57,7 @@ export const signUp = async (req: Request, res: Response) => {
 			</h3>
 			<p>
 				Go to this link to get started with our services.
-				<a href="http://localhost:5000/auth/signup/${token}">
+				<a href="${HOST}/auth/signup/${token}">
 					Get authenticated
 				</a>
 			</p>
