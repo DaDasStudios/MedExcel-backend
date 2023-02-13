@@ -7,7 +7,7 @@ import { signToken, verifyToken } from '../lib/jsonwebtoken';
 import { emailHTMLBody } from '../util/email'
 import { mailTransporter } from '../lib/nodemailer';
 import { IUser } from '../interfaces'
-import { CLIENT_HOST } from '../config';
+import { CLIENT_HOST, HOST } from '../config';
 
 export const signIn = async (req: Request, res: Response) => {
     try {
@@ -19,8 +19,14 @@ export const signIn = async (req: Request, res: Response) => {
 
         if (!await comparePassword(password, foundUser?.password)) return res.status(403).json({ message: "Invalid credentials" })
 
+        // * Check subscription date
+        if (foundUser.subscription.hasSubscription) {
+            foundUser.subscription.hasSubscription = foundUser.subscription.access.getTime() > Date.now()
+        }
+
         const token = signToken({ id: foundUser._id.toString() })
-        await User.findByIdAndUpdate(foundUser._id, { token })
+        foundUser.token = token
+        await foundUser.save()
 
         return res.status(200).json({ token, id: foundUser._id })
     } catch (error) {
@@ -34,8 +40,11 @@ export const signUp = async (req: Request, res: Response) => {
         if (!username || !email || !password) return res.status(403).json({ message: "Uncompleted information" })
 
         if (username.length < 5 || !emailRegExp.test(email) || password.length < 8) {
-            return res.status(403).json({ message: "Invalid credentials" })
+            return res.status(400).json({ message: "Invalid request body" })
         }
+
+        // * Check whether email is already registered
+        if (await User.findOne({ email })) return res.status(400).json({ status: "REGISTERED", message: "Email already registered" })
 
         const USER_ROLE = await Role.findOne({ name: "User" })
         const newUser = new User({
@@ -56,7 +65,7 @@ export const signUp = async (req: Request, res: Response) => {
 			</h3>
 			<p>
 				Go to this link to get started with our services.
-				<a href="https://medexcel.onrender.com/auth/signup/${token}">
+				<a href="${HOST}/auth/signup/${token}">
 					Get authenticated
 				</a>
 			</p>
@@ -81,10 +90,10 @@ export const confirmEmail = async (req: Request, res: Response) => {
         dateLimit.setDate(dateLimit.getDate() + 14)
 
         const newUser = new User({
-            username, 
-            email, 
-            password, 
-            role, 
+            username,
+            email,
+            password,
+            role,
             subscription: {
                 hasSubscription: false,
                 access: dateLimit,
@@ -97,7 +106,7 @@ export const confirmEmail = async (req: Request, res: Response) => {
         newUser.token = token
         const savedUser = await newUser.save()
 
-        return res.redirect(CLIENT_HOST)
+        return res.redirect(`${CLIENT_HOST}/signin`)
     } catch (error) {
         return res.status(403).json({ message: "Invalid credentials" })
     }

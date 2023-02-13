@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Request, Response } from "express";
 import { RequestUser } from "../@types/RequestUser";
-import { PAYPAL_URL } from "../config";
+import { CLIENT_HOST, HOST, PAYPAL_URL } from "../config";
 import { IDateSubscription } from "../interfaces";
 import { signToken, verifyToken } from "../lib/jsonwebtoken";
 import { authPaypal } from '../lib/paypal'
@@ -20,7 +20,7 @@ export const cancelOrder = async (req: Request, res: Response) => {
         user.payment_id = null
         await user.save()
 
-        return res.status(200).json({ message: "Order canceled" })
+        return res.redirect(`${CLIENT_HOST}/subscription?status=CANCELLED`)
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" })
     }
@@ -56,19 +56,7 @@ export const captureOrder = async (req: Request, res: Response) => {
         }
         const savedUser = await user.save()
         
-        return res.status(200).json({ 
-            message: "Subscription payed successfully", 
-            subscription,
-            user: {
-                username: savedUser.username,
-                email: savedUser.email, 
-                subscription: {
-                    hasSubscription: savedUser.subscription.hasSubscription,
-                    access: savedUser.subscription.access,
-                    purchaseDate: savedUser.subscription.purchaseDate
-                } 
-            }
-        })
+        return res.redirect(`${CLIENT_HOST}/subscription?token=${savedUser.payment_token}`)
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" })
     }
@@ -104,8 +92,8 @@ export const createOrder = async (req: RequestUser, res: Response) => {
                 }
             ],
             application_context: {
-                cancel_url: `https://medexcel.onrender.com/payments/cancel`,
-                return_url: `https://medexcel.onrender.com/payments/capture`,
+                cancel_url: `${HOST}/payments/cancel`,
+                return_url: `${HOST}/payments/capture`,
             }
         }, {
             headers: {

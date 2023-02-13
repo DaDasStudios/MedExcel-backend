@@ -20,7 +20,7 @@ export const getSubscriptionPlans = async (req: RequestUser, res: Response) => {
 
 export const deleteSubscriptionPlan = async (req: RequestUser, res: Response) => {
     try {
-        const { id } = req.body;
+        const { id } = req.params;
         if (!id) return res.status(400).json({ message: "Uncompleted information" })
         const siteInfo = await Site.findOne({ name: "Medexcel" })
         const subscriptionPlans = siteInfo.subscriptionPlans
@@ -39,7 +39,8 @@ export const deleteSubscriptionPlan = async (req: RequestUser, res: Response) =>
 
 export const updateSubscriptionPlan = async (req: RequestUser, res: Response) => {
     try {
-        const { id, name, description, days, price } = req.body;
+        const { id } = req.params
+        const { name, description, days, price } = req.body;
         if (!id) return res.status(400).json({ message: "Uncompleted information" })
 
         if (!name || !description || !days || !price) return res.status(400).json({ message: "Uncompleted information" })
@@ -51,18 +52,18 @@ export const updateSubscriptionPlan = async (req: RequestUser, res: Response) =>
         if (idx < 0) return res.status(404).json({ message: "Subscription not found" })
 
         subscriptionPlans[idx] = {
-            _id: subscriptionPlans[idx]._id, 
+            _id: subscriptionPlans[idx]._id,
             createdAt: subscriptionPlans[idx].createdAt,
             updatedAt: new Date(),
-            name, 
-            description, 
-            days, 
+            name,
+            description,
+            days,
             price,
         }
 
         siteInfo.subscriptionPlans = subscriptionPlans
         await siteInfo.save()
-    
+
         return res.status(200).json({
             message: "Subscription updated",
             subscriptionPlans
@@ -83,10 +84,10 @@ export const createSubcriptionPlan = async (req: RequestUser, res: Response) => 
 
         siteInfo.subscriptionPlans.push({
             _id: new Types.ObjectId().toString(),
-            name, 
-            description, 
-            days, price, 
-            createdAt: new Date(), 
+            name,
+            description,
+            days, price,
+            createdAt: new Date(),
             updatedAt: new Date()
         })
 
@@ -113,7 +114,7 @@ export const updateImage = async (req: RequestUser, res: Response) => {
             }
         })
         await fs.remove(image.tempFilePath)
-        res.status(200).json({ message: "Website imaged updated", image: imgRes })
+        res.status(200).json({ message: "Website image updated", image: imgRes })
     } catch (error) {
         res.status(500).json({ message: "Internal server error" })
     }

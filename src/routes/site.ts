@@ -6,8 +6,8 @@ import { checkSize, hasImage } from '../middlewares/files';
 const subscriptionRouter = Router()
     .get('/', getSubscriptionPlans)
     .post('/', [isAuthenticated(), isAuthorized(["Admin"])], createSubcriptionPlan)
-    .put('/', [isAuthenticated(), isAuthorized(["Admin"])], updateSubscriptionPlan)
-    .delete('/', [isAuthenticated(), isAuthorized(["Admin"])], deleteSubscriptionPlan)
+    .put('/:id', [isAuthenticated(), isAuthorized(["Admin"])], updateSubscriptionPlan)
+    .delete('/:id', [isAuthenticated(), isAuthorized(["Admin"])], deleteSubscriptionPlan)
 
 export const siteRouter = Router()
     .get('/', getSite)

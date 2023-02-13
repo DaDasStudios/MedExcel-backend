@@ -1,5 +1,4 @@
 import {UploadedFile} from "express-fileupload"
-import { Types } from "mongoose";
 
 export type QuestionType = "SBA" | "ECQ" | "CBQ" 
 

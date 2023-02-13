@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { updatePassword, users, user, updateUser, deleteUser, recoverPassword } from "../controllers";
+import { checkPlanDateExpiration } from "../middlewares";
 import { isAuthenticated, isAuthorized } from '../middlewares/auth'
 
 const passwordRouter = Router()
@@ -8,8 +9,8 @@ const passwordRouter = Router()
 
 const userRouter = Router()
     .get("/:id", [isAuthenticated(), isAuthorized(["Admin"])], user)
-    .get("/owner/:id", [isAuthenticated(), isAuthorized(["User"], true)], user)
-    .put("/owner/:id", [isAuthenticated(), isAuthorized(["User"], true)], updateUser)
+    .get("/owner/:id", [isAuthenticated(), isAuthorized(["User", "Admin"], true), checkPlanDateExpiration], user)
+    .put("/owner/:id", [isAuthenticated(), isAuthorized(["User"], true), checkPlanDateExpiration], updateUser)
     .put("/:id", [isAuthenticated(), isAuthorized(["Admin"])], updateUser)
     .delete("/:id", [isAuthenticated(), isAuthorized(["Admin"])], deleteUser)
 
