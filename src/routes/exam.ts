@@ -5,7 +5,7 @@ import { isAuthenticated, isAuthorized } from '../middlewares/auth';
 
 export const examRouter = Router()
     .get('/', [isAuthenticated(), isAuthorized(["User"])], getUserExamInfo)
-    .get('/current', [isAuthenticated(), isAuthorized(["User"])], getUserCurrentQuestion)
+    .get('/current', [isAuthenticated(), isAuthorized(["User"]), hasFinished], getUserCurrentQuestion)
     .post('/set', [isAuthenticated(), isAuthorized(["User"]), checkAccessDate], setUserExam)
     .delete('/cancel', [isAuthenticated(), isAuthorized(["User"])], cancelUserExam)
     .post('/answer', [isAuthenticated(), isAuthorized(["User"]), checkAccessDate, hasFinished], checkQuestion)

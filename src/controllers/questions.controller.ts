@@ -59,8 +59,8 @@ export const deleteQuestion = async (req: RequestUser, res: Response) => {
 
 export const updateQuestion = async (req: RequestUser, res: Response) => {
     try {
-        const { content, scenario, category, subcategory } = req.body;
-        const updatedQuestion = await Question.findByIdAndUpdate(req.params.id, { content, scenario, category, subcategory }, { new: true })
+        const { content, scenario, category, parent } = req.body;
+        const updatedQuestion = await Question.findByIdAndUpdate(req.params.id, { content, scenario, category, parent }, { new: true })
         return res.status(200).json({ message: "Question updated", question: updatedQuestion })
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" })
@@ -69,14 +69,14 @@ export const updateQuestion = async (req: RequestUser, res: Response) => {
 
 export const postQuestion = async (req: RequestUser, res: Response) => {
     try {
-        const { type, content, scenario, category, subcategory } = req.body as IQuestion<SBAQuestion | ECQQuestion | CBQQuestion>
+        const { type, content, scenario, category, parent } = req.body as IQuestion<SBAQuestion | ECQQuestion | CBQQuestion>
 
         if (!type || !content || !category || !scenario) return res.status(400).json({ mesage: "Uncompleted information" })
 
         if (!["SBA", "ECQ", "CBQ"].includes(type)) return res.status(400).json({ message: "Invalid type of question" })
 
         const newQuestion = new Question({
-            type, content, scenario, category, subcategory
+            type, content, scenario, category, parent
         })
 
         const savedQuestion = await newQuestion.save()

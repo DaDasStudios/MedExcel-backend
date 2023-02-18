@@ -7,6 +7,7 @@ import { isAnswerCorrect } from '../util/checkQuestion'
 
 export const getUserCurrentQuestion = async (req: RequestUser, res: Response) => {
     try {
+        if (req.user.exam.startedAt === null) return res.status(401).json({ message: "Exam not started yet"})
         const question = await Question.findById(req.user.exam.questions[req.user.exam.current]).lean()
         let payload: any
         switch (question.type) {
@@ -153,7 +154,7 @@ export const checkQuestion = async (req: RequestUser, res: Response) => {
                 user.exam.current++
                 const savedUser = await user.save()
 
-                return res.status(200).json({ status: isCorrect ? "CORRECT" : "INCORRECT", score: savedUser.exam.score, explanation: foundQuestion.content.explanation })
+                return res.status(200).json({ status: isCorrect ? "CORRECT" : "INCORRECT", score: savedUser.exam.score, explanation: foundQuestion.content.explanation, question: foundQuestion})
             }
 
             case "CBQ": {
@@ -176,7 +177,7 @@ export const checkQuestion = async (req: RequestUser, res: Response) => {
                 user.exam.current++
                 const savedUser = await user.save()
 
-                return res.status(200).json({ status: hasStreak ? "CORRECT" : "NOT ALL CORRECT", score: savedUser.exam.score, explanation: questions.map(q => q.explanation) })
+                return res.status(200).json({ status: hasStreak ? "CORRECT" : "NOT ALL CORRECT", score: savedUser.exam.score, explanation: questions.map(q => q.explanation), question: foundQuestion })
             }
 
             case "ECQ": {
@@ -203,7 +204,7 @@ export const checkQuestion = async (req: RequestUser, res: Response) => {
                 user.exam.current++
                 const savedUser = await user.save()
 
-                return res.status(200).json({ status: hasStreak ? "CORRECT" : "NOT ALL CORRECT", score: savedUser.exam.score, explanation: foundQuestion.content.explanation })
+                return res.status(200).json({ status: hasStreak ? "CORRECT" : "NOT ALL CORRECT", score: savedUser.exam.score, explanation: foundQuestion.content.explanation, question: foundQuestion })
             }
             default:
                 return res.status(400).json({ message: "Question type not found" })

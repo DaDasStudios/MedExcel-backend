@@ -33,5 +33,5 @@ export interface IQuestion<T> {
     scenario: string
     content: T
     category: string
-    subcategory?: string
+    parent?: string
 }

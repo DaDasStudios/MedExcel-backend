@@ -9,7 +9,7 @@ const questionSchema = new Schema({
         type: String,
         required: true
     },
-    subcategory: {
+    parent: {
         type: String,
         required: false
     },
