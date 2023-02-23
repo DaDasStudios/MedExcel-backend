@@ -9,6 +9,10 @@ const questionSchema = new Schema({
         type: String,
         required: true
     },
+    topic: {
+        type: String,
+        required: false
+    },
     parent: {
         type: String,
         required: false

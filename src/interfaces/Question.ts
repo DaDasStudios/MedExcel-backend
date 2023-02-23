@@ -34,4 +34,5 @@ export interface IQuestion<T> {
     content: T
     category: string
     parent?: string
+    topic: string
 }

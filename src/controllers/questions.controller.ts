@@ -5,10 +5,42 @@ import { CBQQuestion, ECQQuestion, IQuestion, QuestionType, SBAQuestion } from "
 
 export const getFilteredQuestions = async (req: RequestUser, res: Response) => {
     try {
-        const { category, id, type } = req.body as { category: string[], id: string, type: QuestionType }
+        const { category, id, type, topic } = req.body as { category: string[], id: string, type: QuestionType, topic: string[] }
         if (id) {
             return res.status(200).json({ question: await Question.findById(id) })
-        } else if (category && type) {
+        }
+        else if (category && topic && type) {
+            return res.status(200).json({
+                questions: await Question.find(
+                    {
+                        category: { $in: category },
+                        type: { $in: type },
+                        topic: { $in: topic }
+                    }
+                )
+            })
+        }
+        else if (category && topic) {
+            return res.status(200).json({
+                questions: await Question.find(
+                    {
+                        category: { $in: category },
+                        topic: { $in: topic }
+                    }
+                )
+            })
+        }
+        else if (type && topic) {
+            return res.status(200).json({
+                questions: await Question.find(
+                    {
+                        topic: { $in: topic },
+                        type: { $in: type }
+                    }
+                )
+            })
+        }
+        else if (category && type) {
             return res.status(200).json({
                 questions: await Question.find(
                     {
@@ -17,7 +49,10 @@ export const getFilteredQuestions = async (req: RequestUser, res: Response) => {
                     }
                 )
             })
-        } else if (category) {
+        } else if (topic) {
+            return res.status(200).json({ questions: category.length === 0 ? await Question.find() : await Question.find({ topic: { $in: topic } }) })
+        }
+        else if (category) {
             return res.status(200).json({ questions: category.length === 0 ? await Question.find() : await Question.find({ category: { $in: category } }) })
         } else if (type) {
             return res.status(200).json({ questions: await Question.find({ type: { $in: type } }) })
@@ -59,8 +94,8 @@ export const deleteQuestion = async (req: RequestUser, res: Response) => {
 
 export const updateQuestion = async (req: RequestUser, res: Response) => {
     try {
-        const { content, scenario, category, parent } = req.body;
-        const updatedQuestion = await Question.findByIdAndUpdate(req.params.id, { content, scenario, category, parent }, { new: true })
+        const { content, scenario, category, parent, topic } = req.body;
+        const updatedQuestion = await Question.findByIdAndUpdate(req.params.id, { content, scenario, category, parent, topic }, { new: true })
         return res.status(200).json({ message: "Question updated", question: updatedQuestion })
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" })
@@ -69,14 +104,14 @@ export const updateQuestion = async (req: RequestUser, res: Response) => {
 
 export const postQuestion = async (req: RequestUser, res: Response) => {
     try {
-        const { type, content, scenario, category, parent } = req.body as IQuestion<SBAQuestion | ECQQuestion | CBQQuestion>
+        const { type, content, scenario, category, parent, topic } = req.body as IQuestion<SBAQuestion | ECQQuestion | CBQQuestion>
 
-        if (!type || !content || !category || !scenario) return res.status(400).json({ mesage: "Uncompleted information" })
+        if (!type || !content || !category || !scenario || !topic) return res.status(400).json({ mesage: "Uncompleted information" })
 
         if (!["SBA", "ECQ", "CBQ"].includes(type)) return res.status(400).json({ message: "Invalid type of question" })
 
         const newQuestion = new Question({
-            type, content, scenario, category, parent
+            type, content, scenario, category, parent, topic
         })
 
         const savedQuestion = await newQuestion.save()
