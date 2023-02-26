@@ -27,6 +27,7 @@ const userSchema = new Schema({
         questions: [String],
         current: Number,
         correctAnswers: [String],
+        currentCorrectAnswers: Number,
         startedAt: Date,
         score: Number,
         scoresHistory: [{

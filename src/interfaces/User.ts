@@ -13,6 +13,7 @@ export interface IUser {
         startedAt: Date
         correctAnswers: string[]
         current: number
+        currentCorrectAnswer: number
         questions: string[]
         score: number
         scoresHistory: {

@@ -24,6 +24,7 @@ export const hasFinished = async (req: RequestUser, res: Response, next: NextFun
             user.exam.scoresHistory.push(currentScore)
             user.exam.current = 0
             user.exam.questions = []
+            user.exam.currentCorrectAnswers = 0
             user.exam.score = 0
             user.exam.startedAt = null
             user.exam.scoresHistory.sort(function (a, b) { return b.score - a.score })

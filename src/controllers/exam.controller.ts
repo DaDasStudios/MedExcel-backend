@@ -76,6 +76,7 @@ export const cancelUserExam = async (req: RequestUser, res: Response) => {
         user.exam.current = 0
         user.exam.questions = []
         user.exam.score = 0
+        user.exam.currentCorrectAnswers = 0
         user.exam.startedAt = null
         await user.save()
         return res.status(204).json({ message: "Exam cancelled" })
@@ -119,6 +120,7 @@ export const setUserExam = async (req: RequestUser, res: Response) => {
         user.exam.questions = questions.map(q => q._id.toString())
         user.exam.current = 0
         user.exam.score = 0
+        user.exam.currentCorrectAnswers = 0
         user.exam.startedAt = new Date()
         await user.save()
 
@@ -149,9 +151,10 @@ export const checkQuestion = async (req: RequestUser, res: Response) => {
                     if (!user.exam.correctAnswers.includes(questionId)) {
                         user.exam.correctAnswers.push(questionId)
                     }
-                    user.exam.score += (100 / user.exam.questions.length)
+                    user.exam.currentCorrectAnswers++
                 }
                 user.exam.current++
+                user.exam.score = (user.exam.currentCorrectAnswers / user.exam.current) * 100
                 const savedUser = await user.save()
 
                 return res.status(200).json({ status: isCorrect ? "CORRECT" : "INCORRECT", score: savedUser.exam.score, explanation: foundQuestion.content.explanation, question: foundQuestion})
@@ -167,7 +170,7 @@ export const checkQuestion = async (req: RequestUser, res: Response) => {
                     const options = questions[i].options
                     const realAnswerIdx = questions[i].answer
                     if (isAnswerCorrect(options[realAnswerIdx - 1], answers[i])) {
-                        user.exam.score += (100 / user.exam.questions.length) / questions.length
+                        user.exam.currentCorrectAnswers += (1 / questions.length)
                     } else hasStreak = false
                 }
 
@@ -175,6 +178,7 @@ export const checkQuestion = async (req: RequestUser, res: Response) => {
                     user.exam.correctAnswers.push(questionId)
                 }
                 user.exam.current++
+                user.exam.score = (user.exam.currentCorrectAnswers / user.exam.current) * 100
                 const savedUser = await user.save()
 
                 return res.status(200).json({ status: hasStreak ? "CORRECT" : "NOT ALL CORRECT", score: savedUser.exam.score, explanation: questions.map(q => q.explanation), question: foundQuestion })
@@ -194,7 +198,7 @@ export const checkQuestion = async (req: RequestUser, res: Response) => {
                 for (let i = 0; i < answers.length; i++) {
                     const realAnswerIdx = questions[i].answer
                     if (isAnswerCorrect(options[realAnswerIdx - 1], answers[i])) {
-                        user.exam.score += (100 / user.exam.questions.length) / questions.length
+                        user.exam.currentCorrectAnswers += (1 / questions.length)
                     } else hasStreak = false
                 }
 
@@ -202,6 +206,7 @@ export const checkQuestion = async (req: RequestUser, res: Response) => {
                     user.exam.correctAnswers.push(questionId)
                 }
                 user.exam.current++
+                user.exam.score = (user.exam.currentCorrectAnswers / user.exam.current) * 100
                 const savedUser = await user.save()
 
                 return res.status(200).json({ status: hasStreak ? "CORRECT" : "NOT ALL CORRECT", score: savedUser.exam.score, explanation: foundQuestion.content.explanation, question: foundQuestion })
