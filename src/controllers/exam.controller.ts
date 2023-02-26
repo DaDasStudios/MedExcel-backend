@@ -7,7 +7,7 @@ import { isAnswerCorrect } from '../util/checkQuestion'
 
 export const getUserCurrentQuestion = async (req: RequestUser, res: Response) => {
     try {
-        if (req.user.exam.startedAt === null) return res.status(401).json({ message: "Exam not started yet"})
+        if (req.user.exam.startedAt === null) return res.status(401).json({ message: "Exam not started yet" })
         const question = await Question.findById(req.user.exam.questions[req.user.exam.current]).lean()
         let payload: any
         switch (question.type) {
@@ -117,7 +117,8 @@ export const setUserExam = async (req: RequestUser, res: Response) => {
         if (questions.length === 0) return res.status(400).json({ message: "No question found with the specified filters" })
 
         const user = await User.findById(req.user._id)
-        user.exam.questions = questions.map(q => q._id.toString())
+        // * Suffle array
+        user.exam.questions = questions.sort((a, b) => 0.5 - Math.random()).map(q => q._id.toString())
         user.exam.current = 0
         user.exam.score = 0
         user.exam.currentCorrectAnswers = 0
@@ -157,7 +158,7 @@ export const checkQuestion = async (req: RequestUser, res: Response) => {
                 user.exam.score = (user.exam.currentCorrectAnswers / user.exam.current) * 100
                 const savedUser = await user.save()
 
-                return res.status(200).json({ status: isCorrect ? "CORRECT" : "INCORRECT", score: savedUser.exam.score, explanation: foundQuestion.content.explanation, question: foundQuestion})
+                return res.status(200).json({ status: isCorrect ? "CORRECT" : "INCORRECT", score: savedUser.exam.score, explanation: foundQuestion.content.explanation, question: foundQuestion })
             }
 
             case "CBQ": {
