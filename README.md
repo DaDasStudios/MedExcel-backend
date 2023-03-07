@@ -251,6 +251,8 @@ Admin can also update and delete created questions by passing the ID in the URL 
 # Payments
 Users has a free trial period for two weeks, how ever after that period of time, user may want to buy a subscription. Here you can find how it actually works using Paypal as a payment method.
 
+> Admin can set a custom day duration of a selected user via **PUT** `/users/user/subscription/:id` and pass `days` in the request body.
+
 ## Buying a subscription plan
 Before actually buy a subscription, user needs to specify which subscription plan wants to pay. So client will request **POST** to `/payments/create-order/{id}` where `id` is the subscription plan identifier needed.
 
@@ -327,6 +329,9 @@ Once an exam is started, user won't be able to start another without cancelling 
 > ⚠️ Answers matched as correct won't be removed from the list!
 
 ---
+
+## Handleing user extra information
+Everytime user takes an exam and sends answers requests, the user's exam information will change based on the answers. For instance, there's a field that stores the questions that were answered correctly. User can reset that record via **PUT** `/users/user/owner/reset-exam-history/:id` where the `id` is the user's ID. 
 
 ## Answer questions
 User will keep a property in the database that indicates the current question to be answered. So the user needs to request **POST** `/exam/answer/` and pass body like the following:

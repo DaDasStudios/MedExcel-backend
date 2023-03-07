@@ -10,12 +10,12 @@ import Role from '../models/Role';
 
 export const users = async (req: Request, res: Response) => {
     try {
-        const adminRoleId = (await Role.findOne({ name: "Admin"}).lean())._id
+        const adminRoleId = (await Role.findOne({ name: "Admin" }).lean())._id
         if (req.query?.key && req.query?.value) {
             const { key, value } = req.query as { key: string, value: string }
             return res.status(200).json({ users: await User.find({ [key]: value, role: { $ne: adminRoleId } }) })
         } else {
-            return res.status(200).json({ users: await User.find({ role: { $ne: adminRoleId }}) })
+            return res.status(200).json({ users: await User.find({ role: { $ne: adminRoleId } }) })
         }
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" })
@@ -99,6 +99,49 @@ export const updatePassword = async (req: RequestUser, res: Response) => {
         await User.findByIdAndUpdate(userWithToken._id, { password: newEncryptedPassword, token: newToken })
 
         return res.status(200).json({ message: "Password updated", token: newToken, id: userWithToken._id })
+    } catch (error) {
+        if (error.name === "TokenExpiredError") return res.status(403).json({ message: "Token expired" })
+        return res.status(403).json({ message: "Invalid credentials" })
+    }
+}
+
+export const setSubscriptionPlan = async (req: RequestUser, res: Response) => {
+    try {
+        const { days } = req.body as {
+            days: number
+        }
+
+        if (!days) return res.status(400).json({ message: "Uncompleted information"})
+
+        const user = await User.findById(req.params.id)
+        const limitDay = new Date()
+        limitDay.setDate(limitDay.getDate() + days)
+        user.subscription = {
+            hasSubscription: true,
+            purchaseDate: new Date(),
+            access: limitDay
+        }
+        await user.save()
+
+        return res.status(200).json({ message: "Subscription actived", })
+
+    } catch (error) {
+        if (error.name === "TokenExpiredError") return res.status(403).json({ message: "Token expired" })
+        return res.status(403).json({ message: "Invalid credentials" })
+    }
+}
+
+export const resetExamHistory = async (req: RequestUser, res: Response) => {
+    try {
+        const user = await User.findById(req.params.id)
+        user.exam = {
+            ...user.exam,
+            scoresHistory: []
+        }
+        await user.save()
+
+        return res.status(200).json({ message: "History reseted" })
+
     } catch (error) {
         if (error.name === "TokenExpiredError") return res.status(403).json({ message: "Token expired" })
         return res.status(403).json({ message: "Invalid credentials" })
