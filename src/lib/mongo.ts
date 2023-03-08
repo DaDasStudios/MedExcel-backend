@@ -4,11 +4,11 @@ import Site from "../models/Site";
 export const setupDatabase = async function () {
     // ? Set up roles
     const foundRoles = await Role.find({ name: { $in: ["Admin", "User"] } })
-    if (!foundRoles) {
+    if (foundRoles.length <= 0) {
         console.info("⚠️ Roles not created yet ")
         console.info("✍️  Creating base role...")
-        new Role("Admin").save()
-        new Role("User").save()
+        await new Role({ name: "Admin" }).save()
+        await new Role({ name: "User" }).save()
     }
 
     // ? Set up site content
