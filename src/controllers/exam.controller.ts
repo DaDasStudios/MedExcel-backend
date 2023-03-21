@@ -99,9 +99,7 @@ export const setUserExam = async (req: RequestUser, res: Response) => {
                 break;
 
             case "NEW":
-                const now = Date.now()
-                questions = (await Question.find({ category: { $in: categories } }).lean())
-                    .filter(q => now - new Date(q.updatedAt).getTime() < 2.628e+9)
+                questions = await Question.find({ _id: { $nin: req.user.exam.correctAnswers }, category: { $in: categories } }).lean()
                 break;
 
             case "INCORRECT":

@@ -17,7 +17,6 @@ export const checkPlanDateExpiration = async (req: RequestUser, res: Response, n
         }
         next()
     } catch (error) {
-        console.log(error)
         next(error)
     }
 }
