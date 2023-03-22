@@ -134,13 +134,14 @@ export const setSubscriptionPlan = async (req: RequestUser, res: Response) => {
 export const resetExamHistory = async (req: RequestUser, res: Response) => {
     try {
         const user = await User.findById(req.params.id)
+        user.exam.correctAnswers = []
         user.exam = {
             ...user.exam,
             scoresHistory: []
         }
         await user.save()
 
-        return res.status(200).json({ message: "History reseted" })
+        return res.status(200).json({ message: "Histories reseted" })
 
     } catch (error) {
         if (error.name === "TokenExpiredError") return res.status(403).json({ message: "Token expired" })
