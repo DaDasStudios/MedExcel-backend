@@ -106,7 +106,7 @@ export const postQuestion = async (req: RequestUser, res: Response) => {
     try {
         const { type, content, scenario, category, parent, topic } = req.body as IQuestion<SBAQuestion | ECQQuestion | CBQQuestion>
 
-        if (!type || !content || !category || !scenario || !topic) return res.status(400).json({ mesage: "Uncompleted information" })
+        if (!type || !content || !category || !scenario) return res.status(400).json({ mesage: "Uncompleted information" })
 
         if (!["SBA", "ECQ", "CBQ"].includes(type)) return res.status(400).json({ message: "Invalid type of question" })
 

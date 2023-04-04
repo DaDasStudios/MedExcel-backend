@@ -1,6 +1,32 @@
 import { Schema, model } from 'mongoose';
 
-const userSchema = new Schema({
+const ScoreHistorySchema = new Schema({
+    startedAt: {
+        type: Date,
+        required: false
+    },
+    finishedAt: {
+        type: Date,
+        required: false
+    },
+    questions: {
+        type: [String],
+        required: true
+    },
+    score: {
+        type: Number,
+        required: true
+    },
+    correctAnswers: {
+        type: [String],
+        required: true
+    }
+}, {
+    _id: false,
+    versionKey: false
+})
+
+const UserSchema = new Schema({
     username: {
         type: String,
         required: true,
@@ -27,15 +53,13 @@ const userSchema = new Schema({
         questions: [String],
         current: Number,
         correctAnswers: [String],
-        currentCorrectAnswers: Number,
+        currentCorrectAnswers: {
+            questions: [String],
+            value: Number
+        },
         startedAt: Date,
         score: Number,
-        scoresHistory: [{
-            startedAt: Date,
-            finishedAt: Date,
-            questions: [String],
-            score: Number
-        }],
+        scoresHistory: [ScoreHistorySchema],
     },
     subscription: {
         hasSubscription: Boolean,
@@ -55,5 +79,5 @@ const userSchema = new Schema({
     timestamps: true
 })
 
-export default model("User", userSchema)
+export default model("User", UserSchema)
 

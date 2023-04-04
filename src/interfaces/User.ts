@@ -1,3 +1,4 @@
+import { IScoreHistory } from "./Statistics"
 
 export interface IUser {
     _id: string
@@ -13,15 +14,13 @@ export interface IUser {
         startedAt: Date
         correctAnswers: string[]
         current: number
-        currentCorrectAnswer: number
+        currentCorrectAnswers: {
+            questions: string[],
+            value: number
+        }
         questions: string[]
         score: number
-        scoresHistory: {
-            startedAt: Date
-            finishedAt: Date
-            questions: string[]
-            score: number
-        }[]
+        scoresHistory: IScoreHistory[]
     }
     token?: string
     payment_id?: string

@@ -1,5 +1,6 @@
 import { NextFunction, Response } from "express";
 import { RequestUser } from "../@types/RequestUser";
+import { IScoreHistory } from "../interfaces";
 import User from "../models/User";
 
 export const checkAccessDate = async (req: RequestUser, res: Response, next: NextFunction) => {
@@ -15,25 +16,44 @@ export const hasFinished = async (req: RequestUser, res: Response, next: NextFun
     try {
         if (req.user.exam.current === req.user.exam.questions.length && req.user.exam.startedAt !== null) {
             const user = await User.findById(req.user._id)
-            const currentScore = {
+
+            const currentScore: IScoreHistory = {
                 questions: user.exam.questions,
                 finishedAt: new Date(),
                 startedAt: user.exam.startedAt,
-                score: user.exam.score
+                score: user.exam.score,
+                correctAnswers: user.exam.currentCorrectAnswers.questions
             }
-            user.exam.scoresHistory.push(currentScore)
-            user.exam.current = 0
-            user.exam.questions = []
-            user.exam.currentCorrectAnswers = 0
-            user.exam.score = 0
-            user.exam.startedAt = null
-            user.exam.scoresHistory.sort(function (a, b) { return b.score - a.score })
-            const savedUser = await user.save()
+
+            await user.updateOne({
+                $set: {
+                    exam: {
+                        ...user.exam,
+                        startedAt: null,
+                        current: 0,
+                        currentCorrectAnswers: {
+                            questions: [],
+                            value: 0
+                        },
+                        score: 0,
+                        questions: [],
+                        currentPerfomance: [],
+                    }
+                }
+            })
+            await user.updateOne({
+                $push: {
+                    'exam.scoresHistory': currentScore
+                }
+            })
+
+
             return res.status(200).json({ message: "Exam finished", status: "FINISHED", record: currentScore })
         }
 
         next()
     } catch (error) {
+        console.log(error)
         next(error)
     }
 }
