@@ -25,7 +25,7 @@ export type StatisticsMeasurements = {
 }
 
 /**
- * 
+ * The response body for the requests that are looking for analytics and statistics
  */
 export interface IStatisticResponse {
     count: number

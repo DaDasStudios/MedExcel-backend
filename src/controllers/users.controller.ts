@@ -192,11 +192,11 @@ export const calculateGeneralStatistics = async (req: Request, res: Response) =>
 
 export const calculateSpecificStatistics = async (req: Request, res: Response) => {
     try {
-        const { questionsId, correctQuestionsId } = req.body as {
-            questionsId: string[], correctQuestionsId: string[]
+        const { correctQuestionsId } = req.body as {
+            correctQuestionsId: string[]
         }
 
-        if (!correctQuestionsId || !questionsId) return res.status(400).json({ message: "Requires the IDs of questions to calculate the statistics", status: ResponseStatus.BAD_REQUEST })
+        if (!correctQuestionsId) return res.status(400).json({ message: "Requires the IDs of questions to calculate the statistics", status: ResponseStatus.BAD_REQUEST })
 
         const questions = await Question.find({ _id: { $in: correctQuestionsId } }).select('type category topic parent').lean() as IQuestion<any>[]
 
