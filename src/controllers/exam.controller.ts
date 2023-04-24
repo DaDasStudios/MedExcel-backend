@@ -77,19 +77,16 @@ export const cancelUserExam = async (req: RequestUser, res: Response) => {
             exam: {
                 ...user.exam,
                 current: 0,
-                currentCorrectAnswers: 0,
+                currentCorrectAnswers: {
+                    questions: [],
+                    value: 0
+                },//
                 score: 0,
                 questions: [],
                 currentPerfomance: [],
                 startedAt: null,
             }
         }})
-        // user.exam.current = 0
-        // user.exam.questions = []
-        // user.exam.score = 0
-        // user.exam.currentCorrectAnswers = 0
-        // user.exam.startedAt = null
-        // user.exam.currentPerfomance = []
 
         return res.status(204).json({ message: "Exam cancelled" })
     } catch (error) {

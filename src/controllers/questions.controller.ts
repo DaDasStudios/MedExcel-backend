@@ -3,9 +3,16 @@ import { RequestUser } from "../@types/RequestUser";
 import Question from "../models/Question";
 import { CBQQuestion, ECQQuestion, IQuestion, QuestionType, SBAQuestion } from "../interfaces";
 
+interface IGetFilteredQuestionsBody {
+    category: string[]
+    id: string 
+    type: QuestionType 
+    topic: string[]
+}
+
 export const getFilteredQuestions = async (req: RequestUser, res: Response) => {
     try {
-        const { category, id, type, topic } = req.body as { category: string[], id: string, type: QuestionType, topic: string[] }
+        const { category, id, type, topic } = req.body as IGetFilteredQuestionsBody
         if (id) {
             return res.status(200).json({ question: await Question.findById(id) })
         }
