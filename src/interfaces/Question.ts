@@ -1,14 +1,12 @@
-import {UploadedFile} from "express-fileupload"
+import { UploadedFile } from "express-fileupload"
 
-export type QuestionType = "SBA" | "ECQ" | "CBQ" 
+export type QuestionType = "SBA" | "ECQ" | "CBQ"
 
 export interface MDFile extends UploadedFile {
 
 }
 
-export interface CBQQuestion {
-    questions: SBAQuestion[];
-}
+export type CBQQuestion = SBAQuestion[]
 
 export interface ECQQuestion {
     options: string[]
@@ -29,10 +27,17 @@ export interface SBAQuestion {
 
 export interface IQuestion<T> {
     _id: string
-    type: string
+    type: QuestionType
     scenario: string
     content: T
     category: string
     parent?: string
     topic: string
+}
+
+export interface IQuestionReview {
+    questionId: string
+    authorId: string
+    rate: number
+    review: string
 }

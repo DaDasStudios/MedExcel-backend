@@ -3,4 +3,5 @@ dist
 .env
 .env.test
 .env.dev
+.env.production
 access.log

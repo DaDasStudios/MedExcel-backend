@@ -1,9 +1,11 @@
 import { Response } from "express";
 import { RequestUser } from "../@types/RequestUser";
-import { SBAQuestion } from "../interfaces";
+import { CBQQuestion, ECQQuestion, IQuestion, SBAQuestion } from "../interfaces";
 import Question from "../models/Question";
 import User from "../models/User";
 import { isAnswerCorrect } from '../util/checkQuestion'
+import { NODE_ENV } from "../config";
+import { ResponseStatus } from "../util/response";
 
 export const getUserCurrentQuestion = async (req: RequestUser, res: Response) => {
     try {
@@ -73,22 +75,32 @@ export const getUserExamInfo = async (req: RequestUser, res: Response) => {
 export const cancelUserExam = async (req: RequestUser, res: Response) => {
     try {
         const user = await User.findById(req.user._id)
-        await user.updateOne({$set: {
-            exam: {
-                ...user.exam,
-                current: 0,
-                currentCorrectAnswers: {
-                    questions: [],
-                    value: 0
-                },//
-                score: 0,
-                questions: [],
-                currentPerfomance: [],
-                startedAt: null,
+        const incorrectQuestionsIds: string[] = []
+        for (let i = 0; i < user.exam.questions.length && i < user.exam.current; i++) {
+            const questionId = user.exam.questions[i]
+            if (!user.exam.currentCorrectAnswers.questions.includes(questionId)) {
+                incorrectQuestionsIds.push(questionId)
             }
-        }})
+        }
 
-        return res.status(204).json({ message: "Exam cancelled" })
+        await user.updateOne({
+            $set: {
+                exam: {
+                    ...user.exam,
+                    current: 0,
+                    currentCorrectAnswers: {
+                        questions: [],
+                        value: 0
+                    },//
+                    score: 0,
+                    questions: [],
+                    currentPerfomance: [],
+                    startedAt: null,
+                }
+            }
+        })
+
+        return res.status(200).json({ message: "Exam cancelled successfully", status: ResponseStatus.EXAM_CANCELED, statusCode: 204, incorrectQuestions: await Question.find({ _id: { $in: incorrectQuestionsIds } }) })
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" })
     }
@@ -96,28 +108,31 @@ export const cancelUserExam = async (req: RequestUser, res: Response) => {
 
 export const setUserExam = async (req: RequestUser, res: Response) => {
     try {
-        const { categories, filter } = req.body as { categories: string[], filter: "NEW" | "ALL" | "INCORRECT" }
-        if (!categories) return res.status(400).json({ message: "Categories must be provided" })
+        const { categories, filter, ids } = req.body as { categories: string[], filter: "NEW" | "ALL" | "INCORRECT", ids: string[] }
 
         if (req.user.exam.startedAt !== null) return res.status(401).json({ message: "You cannot start an exam without finishing the current one" })
 
-        let questions: any
+        let questions: IQuestion<any>[]
+
+        if (NODE_ENV === "development" && ids) {
+            questions = await Question.find({ _id: { $in: ids } })
+        } else if (!categories) return res.status(400).json({ message: "Categories must be provided" })
+
         switch (filter) {
             case "ALL":
                 questions = await Question.find({ category: { $in: categories } }).lean()
                 break;
 
             case "NEW":
-                questions = await Question.find({ _id: { $nin: req.user.exam.correctAnswers }, category: { $in: categories } }).lean()
+                // ? The question's ids that was seleced somewhen
+                const questionsHistory = req.user.exam.scoresHistory.reduce((arr, curr) => {
+                    return arr.concat(curr.questions)
+                }, [] as string[])
+                questions = await Question.find({ _id: { $nin: questionsHistory }, category: { $in: categories } }).lean()
                 break;
 
             case "INCORRECT":
                 questions = await Question.find({ category: { $in: categories }, _id: { $nin: req.user.exam.correctAnswers } }).lean()
-                break;
-
-            default:
-                // * We assume that the filter is ALL
-                questions = await Question.find({ category: { $in: categories } }).lean()
                 break;
         }
 
@@ -125,22 +140,43 @@ export const setUserExam = async (req: RequestUser, res: Response) => {
 
         const user = await User.findById(req.user._id)
 
-        await user.updateOne({ $set: {
-            exam: {
-                ...user.exam,
-                questions: questions.sort((a, b) => 0.5 - Math.random()).map(q => q._id.toString()),
-                current: 0,
-                score: 0,
-                currentCorrectAnswers: {
-                    questions: [],
-                    value: 0
-                },
-                startedAt: new Date(),
+        // * Suffle the options of the questions
+        // for (const q of questions) {
+        //     switch (q.type) {
+        //         case "SBA":
+        //             (q as IQuestion<SBAQuestion>).content.options.sort((a, b) => 0.5 - Math.random())
+        //             break
+        //         case "CBQ":
+        //             (q as IQuestion<CBQQuestion>).content.map(sq => {
+        //                 return { ...sq, options: sq.options.sort((a, b) => 0.5 - Math.random()) }
+        //             })
+        //             break
+        //         case "ECQ":
+        //             (q as IQuestion<ECQQuestion>).content.options.sort((a, b) => 0.5 - Math.random())
+        //             break
+        //     }
+        // }
+
+        await user.updateOne({
+            $set: {
+                exam: {
+                    ...user.exam,
+                    questions: questions.sort((a, b) => 0.5 - Math.random()).map(q => q._id.toString()),
+                    current: 0,
+                    score: 0,
+                    currentCorrectAnswers: {
+                        questions: [],
+                        value: 0
+                    },
+                    startedAt: new Date(),
+                }
             }
-        }})
+        })
 
         return res.status(200).json({ message: "Exam started", questions: user.exam.questions })
     } catch (error) {
+        console.log(error)
+
         return res.status(500).json({ message: "Internal server error" })
     }
 }
@@ -239,7 +275,6 @@ export const checkQuestion = async (req: RequestUser, res: Response) => {
                 return res.status(400).json({ message: "Question type not found" })
         }
     } catch (error) {
-        console.log(error)
         return res.status(500).json({ message: "Internal server error" })
     }
 }

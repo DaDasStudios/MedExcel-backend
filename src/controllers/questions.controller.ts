@@ -1,12 +1,15 @@
-import { Response } from "express";
+import { Response, response } from "express";
 import { RequestUser } from "../@types/RequestUser";
 import Question from "../models/Question";
-import { CBQQuestion, ECQQuestion, IQuestion, QuestionType, SBAQuestion } from "../interfaces";
+import { CBQQuestion, ECQQuestion, IQuestion, IQuestionReview, QuestionType, SBAQuestion } from "../interfaces";
+import { ResponseStatus } from "../util/response";
+import QuestionReview from "../models/QuestionReview";
+import Role from "../models/Role";
 
 interface IGetFilteredQuestionsBody {
     category: string[]
-    id: string 
-    type: QuestionType 
+    id: string
+    type: QuestionType
     topic: string[]
 }
 
@@ -124,6 +127,85 @@ export const postQuestion = async (req: RequestUser, res: Response) => {
         const savedQuestion = await newQuestion.save()
 
         return res.status(200).json({ message: "New question saved", question: savedQuestion })
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+
+export const postReviewQuestion = async (req: RequestUser, res: Response) => {
+    try {
+        const { questionId, review, rate }: IQuestionReview = req.body
+        if (!questionId || !review || !rate) {
+            return res.status(400).json({ message: "Must provide all the parameters", status: ResponseStatus.BAD_REQUEST })
+        }
+
+        if (rate < 0 || rate > 5) {
+            return res.status(400).json({ message: "Rate must be between 0 and 5", status: ResponseStatus.BAD_REQUEST })
+        }
+
+        if (!(await Question.findById(questionId))) {
+            return res.status(404).json({ message: "Question not found with the provided id", status: ResponseStatus.NOT_FOUND_QUESTIONS })
+        }
+
+        const questionReview = await (new QuestionReview({
+            questionId, review, rate, authorId: req.user._id
+        })).save()
+
+
+        return res.status(201).json({ message: "Question review created successfully", status: ResponseStatus.RESOURCE_CREATED, questionReview })
+
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+export const getReviewQuestions = async (req: RequestUser, res: Response) => {
+    try {
+        const questionReviews = await QuestionReview.find()
+
+        if (questionReviews.length === 0) {
+            return res.status(404).json({ message: "Question reviews not found", status: ResponseStatus.NOT_FOUND_REVIEW })
+        }
+
+        return res.status(200).json({ status: ResponseStatus.CORRECT, questionReviews })
+
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+export const getUserQuestionReviews = async (req: RequestUser, res: Response) => {
+    try {
+        const questionReviews = await QuestionReview.find({ authorId: { $in: req.user._id } })
+
+        if (questionReviews.length === 0) {
+            return res.status(404).json({ message: "Question reviews not found", status: ResponseStatus.NOT_FOUND_REVIEW })
+        }
+
+        return res.status(200).json({ status: ResponseStatus.CORRECT, questionReviews })
+
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+export const deleteQuestionReview = async (req: RequestUser, res: Response) => {
+    try {
+        const questionReview = await QuestionReview.findById(req.params.id).lean()
+        const userRole = await Role.findById(req.user.role).lean()
+
+        if (userRole.name === "User" && questionReview.authorId !== req.user._id) {
+            return res.status(403).json({ message: "Not authorized to delete an alien question review", status: ResponseStatus.UNAUTHORIZED })
+        }
+
+        const deletedQuestionReview = await QuestionReview.findByIdAndDelete(req.params.id)
+        if (!deletedQuestionReview) {
+            return res.status(404).json({ message: "Question review not found with the provided id", status: ResponseStatus.NOT_FOUND_REVIEW })
+        }
+
+        return res.status(204).json({ message: "Question review deleted successfully", questionReview: deletedQuestionReview, status: ResponseStatus.RESOURCE_DELETED })
+
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" })
     }

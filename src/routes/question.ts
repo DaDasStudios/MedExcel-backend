@@ -1,6 +1,12 @@
 import { Router } from 'express';
-import { deleteQuestion, getFilteredQuestions, getQuestions, postQuestion, updateQuestion } from '../controllers/questions.controller';
+import { deleteQuestion, deleteQuestionReview, getFilteredQuestions, getQuestions, getReviewQuestions, getUserQuestionReviews, postQuestion, postReviewQuestion, updateQuestion } from '../controllers/questions.controller';
 import { isAuthenticated, isAuthorized } from '../middlewares/auth';
+
+const questionReviewRouter = Router()
+    .post('/', [isAuthenticated(), isAuthorized(["User"])], postReviewQuestion)
+    .get('/', [isAuthenticated(), isAuthorized(["Admin"])], getReviewQuestions)
+    .get('/owner', [isAuthenticated(), isAuthorized(["User"])], getUserQuestionReviews)
+    .delete('/:id', [isAuthenticated(), isAuthorized(["Admin", "User"])], deleteQuestionReview)
 
 export const questionRouter = Router()
     .get('/', [
@@ -23,3 +29,4 @@ export const questionRouter = Router()
         isAuthenticated(),
         isAuthorized(["Admin"]),
     ], deleteQuestion)
+    .use('/review', questionReviewRouter)

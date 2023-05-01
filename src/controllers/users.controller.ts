@@ -5,9 +5,9 @@ import User from '../models/User';
 import { emailHTMLBody } from '../util/email';
 import { encryptPassword } from '../lib/bcryptjs';
 import { signToken, verifyToken } from '../lib/jsonwebtoken';
-import { CLIENT_HOST } from '../config';
+import { CLIENT_HOST, HOST } from '../config';
 import Role from '../models/Role';
-import { IExamPerfomance, QuestionCategory, IStatisticResponse, IQuestion } from '../interfaces/';
+import { IQuestion } from '../interfaces/';
 import Question from '../models/Question';
 import { ResponseStatus } from '../util/response';
 import { getStatistics } from '../util/statistics';
@@ -39,6 +39,53 @@ export const user = async (req: Request, res: Response) => {
     }
 }
 
+export const createAttemptDeleteUser = async (req: RequestUser, res: Response) => {
+    try {
+        const foundUser = await User.findById(req.user._id)
+        const token = signToken({ permission: foundUser._id.toString() + foundUser.password.length + foundUser.createdAt.toString() }, '5m')
+
+        await foundUser.updateOne({ $set: { token } })
+
+        await mailTransporter.sendMail({
+            subject: `⚠️ Hi ${req.user.username} please confirm to delete your Medexcel account`,
+            to: req.user.email,
+            html: emailHTMLBody(`
+		<div>
+			<h3>
+				Click on the link below to continue with your account deletion
+			</h3>
+            <p>
+                Please be aware of this decision, all your personal information will be lost including your exams records. This email won't be valid in five minutes.
+            </p>
+			<a href="${CLIENT_HOST}/account/delete?permissionToken=${token}">
+				Delete your account
+			</a>
+		</div>
+        `)})
+
+        return res.status(202).json({ message: "Waiting for account deletion this request expires in 5 minutes", status: ResponseStatus.WAITING_FOR_AUTHENTICATION })
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
+
+export const deleteUserAuthorized = async (req: Request, res: Response) => {
+    try {
+        const userWithToken = await User.findOne({ token: req.query.permissionToken })
+
+        const { permission } = verifyToken(userWithToken.token) as { permission: string }
+
+        if (!(permission === userWithToken._id.toString() + userWithToken.password.length + userWithToken.createdAt.toString())) return res.status(401).json({ message: "Not authorized", status: ResponseStatus.UNAUTHORIZED })
+
+        const deletedUser = await User.findByIdAndDelete(userWithToken._id).select("-role -payment_token -payment_id -password")
+
+        return res.status(200).json({ message: "User deleted successfully", status: ResponseStatus.USER_DELETED, statusCode: 204, userDeleted: deletedUser })
+    } catch (error) {
+        if (error.name === "TokenExpiredError") return res.status(403).json({ message: "Token expired" })
+        return res.status(500).json({ message: "Internal server error" })
+    }
+}
+
 export const deleteUser = async (req: Request, res: Response) => {
     try {
         const deletedUser = await User.findByIdAndDelete(req.params.id)
@@ -54,7 +101,7 @@ export const updateUser = async (req: Request, res: Response) => {
         const { username } = req.body
         if (!username) return res.status(403).json({ message: "Uncompleted information", status: ResponseStatus.BAD_REQUEST })
         const updatedUser = await User.findByIdAndUpdate(req.params.id, { username }, { new: true })
-        return res.status(200).json({ message: "User updated", status: ResponseStatus.USER_UPDATED ,user: updatedUser })
+        return res.status(200).json({ message: "User updated", status: ResponseStatus.USER_UPDATED, user: updatedUser })
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" })
     }
@@ -78,7 +125,7 @@ export const recoverPassword = async (req: Request, res: Response) => {
 			</h3>
 			<p>
 				Go to this link to change your password
-				<a href="${CLIENT_HOST}/recover/auth?token=${token}">
+				<a href="${CLIENT_HOST}/recover/auth/token=${token}">
 					Update password
 				</a>
 			</p>
@@ -178,7 +225,7 @@ export const calculateGeneralStatistics = async (req: Request, res: Response) =>
 
         const questions = await Question.find({ _id: { $in: exam.correctAnswers } }).select('type category topic parent').lean() as IQuestion<any>[]
 
-        if (questions.length === 0) return res.status(404).json({ message: "Unavailable to calculate statistics due to user does not have correct answers yet", status: ResponseStatus.NOT_FOUND_QUESTIONS})
+        if (questions.length === 0) return res.status(404).json({ message: "Unavailable to calculate statistics due to user does not have correct answers yet", status: ResponseStatus.NOT_FOUND_QUESTIONS })
 
         const statistics = getStatistics(questions)
 

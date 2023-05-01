@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updatePassword, users, user, updateUser, deleteUser, recoverPassword, setSubscriptionPlan, resetExamHistory, resetPerformanceHistory, calculateGeneralStatistics, calculateSpecificStatistics } from "../controllers";
+import { updatePassword, users, user, updateUser, deleteUser, recoverPassword, setSubscriptionPlan, resetExamHistory, resetPerformanceHistory, calculateGeneralStatistics, calculateSpecificStatistics, createAttemptDeleteUser, deleteUserAuthorized } from "../controllers";
 import { checkPlanDateExpiration } from "../middlewares";
 import { isAuthenticated, isAuthorized } from '../middlewares/auth'
 
@@ -10,6 +10,8 @@ const passwordRouter = Router()
 const ownerRouter = Router()
     .get("/:id", [isAuthenticated(), isAuthorized(["User", "Admin"], true), checkPlanDateExpiration], user)
     .put("/:id", [isAuthenticated(), isAuthorized(["User"], true), checkPlanDateExpiration], updateUser)
+    .delete("/delete/:id", [isAuthenticated(), isAuthorized(["User"], true)], createAttemptDeleteUser)
+    .delete("/delete", deleteUserAuthorized)
     .delete("/reset-exam-history/:id", [isAuthenticated(), isAuthorized(["User"], true), checkPlanDateExpiration], resetExamHistory)
     .delete("/reset-performance-history/:id", [isAuthenticated(), isAuthorized(["User"], true), checkPlanDateExpiration], resetPerformanceHistory)
     .get("/statistics/:id", [isAuthenticated(), isAuthorized(["User"], true), checkPlanDateExpiration], calculateGeneralStatistics)
