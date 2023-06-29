@@ -125,7 +125,7 @@ export const recoverPassword = async (req: Request, res: Response) => {
 			</h3>
 			<p>
 				Go to this link to change your password
-				<a href="${CLIENT_HOST}/recover/auth/token=${token}">
+				<a href="${CLIENT_HOST}/recover/auth?token=${token}">
 					Update password
 				</a>
 			</p>
