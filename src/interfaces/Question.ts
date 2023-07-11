@@ -10,10 +10,10 @@ export type CBQQuestion = SBAQuestion[]
 
 export interface ECQQuestion {
     options: string[]
+    explanation: string
     questions: Array<{
         question: string
         answer: string | number
-        explanation: string
     }>
 
 }
