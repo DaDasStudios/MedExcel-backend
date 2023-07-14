@@ -154,31 +154,32 @@ export const setUserExam = async (req: RequestUser, res: Response) => {
 		if (NODE_ENV === "development" && ids) {
 			questions = await Question.find({ _id: { $in: ids } }).lean()
 		} else if (!categories) return res.status(400).json({ message: "Categories must be provided" })
+		else {
+			switch (filter) {
+				case "ALL":
+					questions = await Question.find({
+						category: { $in: categories },
+					}).lean()
+					break
 
-		switch (filter) {
-			case "ALL":
-				questions = await Question.find({
-					category: { $in: categories },
-				}).lean()
-				break
+				case "NEW":
+					// ? The question's ids that was seleced somewhen
+					const questionsHistory = req.user.exam.scoresHistory.reduce((arr, curr) => {
+						return arr.concat(curr.questions)
+					}, [] as string[])
+					questions = await Question.find({
+						_id: { $nin: questionsHistory },
+						category: { $in: categories },
+					}).lean()
+					break
 
-			case "NEW":
-				// ? The question's ids that was seleced somewhen
-				const questionsHistory = req.user.exam.scoresHistory.reduce((arr, curr) => {
-					return arr.concat(curr.questions)
-				}, [] as string[])
-				questions = await Question.find({
-					_id: { $nin: questionsHistory },
-					category: { $in: categories },
-				}).lean()
-				break
-
-			case "INCORRECT":
-				questions = await Question.find({
-					category: { $in: categories },
-					_id: { $nin: req.user.exam.correctAnswers },
-				}).lean()
-				break
+				case "INCORRECT":
+					questions = await Question.find({
+						category: { $in: categories },
+						_id: { $nin: req.user.exam.correctAnswers },
+					}).lean()
+					break
+			}
 		}
 
 		if (NODE_ENV === "development" && type) {
@@ -324,7 +325,7 @@ export const checkQuestion = async (req: RequestUser, res: Response) => {
 					score: savedUser.exam.score,
 					explanation: foundQuestion.content.explanation,
 					question: foundQuestion,
-					current: user.exam.current
+					current: user.exam.current,
 				})
 			}
 			default:
